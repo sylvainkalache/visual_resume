@@ -31,10 +31,16 @@ class App < Sinatra::Base
     doc = Nokogiri::XML(access_token.get("https://api.linkedin.com/v1/people/~:(first-name,last-name,headline,positions,educations,skills,picture-url)").body)
 
     user = Hash.new()
-
     user['positions'] = Array.new()
     # Getting positions infos
     doc.xpath('//position').each do |p|
+
+      company = Nokogiri::XML(access_token.get("https://api.linkedin.com/v1/companies/universal-name=#{p.at_xpath('company').at_xpath('name').text}:(industries)").body)
+      company_industry = nil 
+      company.xpath('//industry').each do |c|
+        company_industry = c.at_xpath('name').text() unless c.at_xpath('name').nil?
+      end
+
       position = { 'company_name' => p.at_xpath('company').at_xpath('name').text,
                  'start-date' => p.at_xpath('start-date').at_xpath('year').text}
       if p.at_xpath('end-date')

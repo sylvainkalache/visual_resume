@@ -27,7 +27,7 @@ class App < Sinatra::Base
   end
 
   get '/' do
-    doc = Nokogiri::XML(access_token.get("https://api.linkedin.com/v1/people/~:(first-name,last-name,headline,educations,skills,picture-url,positions:(start-date:(year,month),end-date,title,company:(name,id,square-logo-url)))").body)
+    doc = Nokogiri::XML(access_token.get("https://api.linkedin.com/v1/people/~:(first-name,last-name,headline,educations,skills,picture-url,positions:(start-date:(year,month),end-date,title,company:(name,id)))").body)
 
     user = Hash.new()
     industries = Hash.new()
@@ -55,7 +55,7 @@ class App < Sinatra::Base
 
       unless p.at_xpath('company').at_xpath('id').nil?
         company = Nokogiri::XML(access_token.get("https://api.linkedin.com/v1/companies/#{p.at_xpath('company').at_xpath('id').text()}:(industries,square-logo-url,logo-url)").body)
-        companies << company.xpath('//square-logo-url').text() unless company.xpath('//square-logo-url').text.nil?
+        companies << company.xpath('//square-logo-url').text() unless company.xpath('//square-logo-url').text.empty?
 
         company.xpath('//industry').each do |c|
           unless c.at_xpath('name').nil?

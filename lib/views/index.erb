@@ -8,8 +8,8 @@
   </head>
   <body>
     <header>
-      <h1><%=@user['first_name']%>&nbsp;<%=@user['last_name']%></h1>
-      <h2><%=@user['headline']%></h2>
+      <h1><%=user['first_name']%>&nbsp;<%=user['last_name']%></h1>
+      <h2><%=user['headline']%></h2>
     </header>
 
     <h3>Work Experience</h3>
@@ -41,7 +41,7 @@
       },
       xAxis: {
           categories: [
-            <% @user['positions'].each do |position| %>
+            <% user['positions'].each do |position| %>
               '<%=position['company_name']%>',
             <% end %>
           ],
@@ -51,7 +51,7 @@
       },
       yAxis: {
           type: 'datetime',
-          min: Date.UTC(<%=@user['positions'][-1]['start-date']%>, 0, 1),
+          min: Date.UTC(<%=user['positions'][-1]['start-date']%>, 0, 1),
           title: {
               text: null
           }
@@ -59,7 +59,7 @@
       series: [{
           showInLegend: false, 
           data: [
-            <% @user['positions'].each do |position| %>
+            <% user['positions'].each do |position| %>
             {
                 low: Date.UTC(<%=position['start-date']%>, 0, 1),
                 y: Date.UTC(<%=position['end-date']%>, 12, 31)
@@ -76,7 +76,7 @@
       },
       xAxis: {
           categories: [
-            <% @user['educations'].each do |education| %>
+            <% user['educations'].each do |education| %>
               '<%=education['school-name']%>',
             <% end %>
           ],
@@ -86,7 +86,7 @@
       },
       yAxis: {
           type: 'datetime',
-          min: Date.UTC(<%=@user['educations'][-1]['start-date']%>, 0, 1),
+          min: Date.UTC(<%=user['educations'][-1]['start-date']%>, 0, 1),
           title: {
               text: null
           }
@@ -94,7 +94,7 @@
       series: [{
           showInLegend: false, 
           data: [
-            <% @user['educations'].each do |education| %>
+            <% user['educations'].each do |education| %>
             {
                 low: Date.UTC(<%=education['start-date']%>, 0, 1),
                 y: Date.UTC(<%=education['end-date']%>, 12, 31)

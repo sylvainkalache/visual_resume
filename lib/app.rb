@@ -31,9 +31,9 @@ class App < Sinatra::Base
   get '/' do
     doc = Nokogiri::XML(access_token.get("https://api.linkedin.com/v1/people/~:(first-name,last-name,headline,positions,educations,skills)").body)
 
-    @user = Hash.new()
+    user = Hash.new()
 
-    @user['positions'] = Array.new()
+    user['positions'] = Array.new()
     # Getting positions infos
     doc.xpath('//position').each do |p|
       position = { 'company_name' => p.at_xpath('company').at_xpath('name').text,
@@ -43,10 +43,10 @@ class App < Sinatra::Base
       else
         position['end-date'] = '2013'
       end
-      @user['positions'] << position
+      user['positions'] << position
     end
 
-    @user['educations'] = Array.new()
+    user['educations'] = Array.new()
     # Getting education infos
     doc.xpath('//education').each do |p|
       education = { 'school-name' => p.at_xpath('school-name').text,
@@ -56,41 +56,31 @@ class App < Sinatra::Base
       else
         education['end-date'] = '2013'
       end
-      @user['educations'] << education
+      user['educations'] << education
     end
 
     # Getting user basic informations
      doc.xpath('//person').each do |c|      
-        @user['first_name'] = c.at_xpath('first-name').text() unless c.at_xpath('first-name').nil?
-        @user['last_name'] = c.at_xpath('last-name').text() unless c.at_xpath('last-name').nil?
-        @user['headline'] = c.at_xpath('headline').text() unless c.at_xpath('headline').nil?
-        @user['picture-url'] = c.at_xpath('picture-url').text() unless c.at_xpath('picture-url').nil?     
+        user['first_name'] = c.at_xpath('first-name').text() unless c.at_xpath('first-name').nil?
+        user['last_name'] = c.at_xpath('last-name').text() unless c.at_xpath('last-name').nil?
+        user['headline'] = c.at_xpath('headline').text() unless c.at_xpath('headline').nil?
+        user['picture-url'] = c.at_xpath('picture-url').text() unless c.at_xpath('picture-url').nil?     
       end
 
-    #context = {}
-    context = Hash.new{|h, k| h[k] = []}
-    context[:user] = @user
-
     # Getting user skills
-    @user['skills'] = Array.new()
+    user['skills'] = Array.new()
     doc.xpath('//skill').each do |s|
       puts s.at_xpath('name')
-      @user['skills'] << s.at_xpath('name').text unless s.at_xpath('name').nil?
+      user['skills'] << s.at_xpath('name').text unless s.at_xpath('name').nil?
     end
     
     context = Hash.new{|h, k| h[k] = []}
+    context[:user] = user
+    erb_instance = ERB.new(File.read('lib/views/index.erb'))
+    html = erb_instance.result(OpenStruct.new(context).instance_eval { binding })
+    File.open('resume.html', 'w') {|f| f.write(html) }
 
-
-
-    p @user
-    puts context.inspect
-    html = erb.result(OpenStruct.new(context).instance_eval { binding })
-    #html = ERB.new(context).result(binding)
-    f = File.open('./test.html', 'w')
-    f.do { |file| file.write(html) }
-    f.close
-
-    erb :index
+    erb :index, :locals => {:user => user}
   end
 
   get '/oauth' do

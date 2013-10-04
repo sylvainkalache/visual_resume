@@ -14,6 +14,8 @@ tmp
 credentials.yml
 resume.html
 resume.pdf
+lib/public/*.html
+lib/public/*.pdf
 
 # YARD artifacts
 .yardoc

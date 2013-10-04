@@ -1,3 +1,3 @@
 visual_resume
 =============
-phantomjs pdfgen.js resume.html resume.pdf
+phantomjs pdf_gen.js resume.html resume.pdf

@@ -12,8 +12,14 @@ header img {
 	float: left;
 	width: 100px;
 	height: 100px;
+	margin-top: 10px;
 }
 
 #overview {
+	float: left;
 	margin-left: 20px;
+}
+
+h3 {
+	clear: both;
 }

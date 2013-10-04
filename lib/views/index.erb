@@ -8,8 +8,11 @@
   </head>
   <body>
     <header>
-      <img src="https://encrypted-tbn3.gstatic.com/images?q=tbn:ANd9GcTLhXNzsP3_z9dfGKePGySFtxAMP_zR_N41harVJeDHM1otHEOoWVomD0YI"/>
-      <!--<img src="<%=user['picture-url']%>"/>-->
+      <% if user.has_key?('picture-url') %>
+        <img src="<%=user['picture-url']%>"/>
+      <% else %>
+        <img src="https://encrypted-tbn3.gstatic.com/images?q=tbn:ANd9GcTLhXNzsP3_z9dfGKePGySFtxAMP_zR_N41harVJeDHM1otHEOoWVomD0YI"/>
+      <% end %>
       <div id="overview">
         <h1><%=user['first_name']%>&nbsp;<%=user['last_name']%></h1>
         <h2><%=user['headline']%></h2>
@@ -21,10 +24,14 @@
 
     <h3>Education</h3>
     <div id="education" style="width:800px; height:200px;"></div>
+    
+    <h3>Industries with Work Experience</h3>
+    <div id="industries" style="width:800px; height:200px;"></div>
 
     <h3>Skills</h3>
     <div id="skills" width="400" height="400"></div>
-
+    
+    <h3>Languange</h3>
     <div id="language" style="width:400px; height:400px;"></div>
   </body>
   <script>
@@ -62,7 +69,7 @@
       },
       yAxis: {
           type: 'datetime',
-          min: Date.UTC(<%=user['positions'][-1]['start-date']%>, 0, 1),
+          min: Date.UTC(<%=user['positions'][-1]['start-year']%>, 1, 1),
           title: {
               text: null
           }
@@ -72,8 +79,8 @@
           data: [
             <% user['positions'].each do |position| %>
             {
-                low: Date.UTC(<%=position['start-date']%>, 0, 1),
-                y: Date.UTC(<%=position['end-date']%>, 12, 31)
+                low: Date.UTC(<%=position['start-year']%>, <%=position['start-month']%>, 1),
+                y: Date.UTC(<%=position['end-year']%>, <%=position['end-month']%>, 31)
             },
             <% end %>
           ]
@@ -97,7 +104,7 @@
       },
       yAxis: {
           type: 'datetime',
-          min: Date.UTC(<%=user['educations'][-1]['start-date']%>, 0, 1),
+          min: Date.UTC(<%=user['educations'][-1]['start-date']%>, 1, 1),
           title: {
               text: null
           }
@@ -107,44 +114,104 @@
           data: [
             <% user['educations'].each do |education| %>
             {
-                low: Date.UTC(<%=education['start-date']%>, 0, 1),
+                low: Date.UTC(<%=education['start-date']%>, 1, 1),
                 y: Date.UTC(<%=education['end-date']%>, 12, 31)
             },
             <% end %>
           ]
       }]
     });
+    
+    //Industries
+    $('#industries').highcharts({
+        chart: {
+            type: 'bar'
+        },
+        xAxis: {
+            categories: ['Law', 'Venture Capital', 'Tech'],
+            title: {
+                text: null
+            }
+        },
+        yAxis: {
+            min: 0,
+            title: {
+                text: 'years',
+                align: 'high'
+            },
+            labels: {
+                overflow: 'justify'
+            }
+        },
+        series: [{
+            showInLegend: false, 
+            data: [3, 5, 4]
+        }]
+    });
 
     //Skills
     $('#skills').highcharts({
+      chart: {
+          plotBackgroundColor: null,
+          plotBorderWidth: null,
+          plotShadow: false
+      },
+      plotOptions: {
+          pie: {
+              allowPointSelect: false,
+              cursor: 'pointer',
+              dataLabels: {
+                  enabled: true,
+                  color: '#000000',
+                  connectorColor: '#000000',
+                  format: '<b>{point.name}</b>'
+              }
+          }
+      },
+      series: [{
+          type: 'pie',
+          name: 'Browser share',
+          data: [
+              <% user['skills'].each do |skill|%>
+              ['<%=skill%>',   1],
+              <% end %>
+          ]
+      }]
+    });
+    
+    //Language
+    $('#language').highcharts({
         chart: {
-            plotBackgroundColor: null,
-            plotBorderWidth: null,
-            plotShadow: false
+            type: 'column'
         },
-        plotOptions: {
-            pie: {
-                allowPointSelect: false,
-                cursor: 'pointer',
-                dataLabels: {
-                    enabled: true,
-                    color: '#000000',
-                    connectorColor: '#000000',
-                    format: '<b>{point.name}</b>'
+        xAxis: {
+            categories: ['Italian', 'English', 'French'],
+            gridLineWidth: 0
+        },
+        yAxis: {
+            title: {
+                text: null
+            },
+            gridLineWidth: 0,
+            tickInterval: 25,
+            labels:{
+                formatter: function(){
+                    return languageMapping[this.value];
                 }
             }
         },
         series: [{
-            type: 'pie',
-            name: 'Browser share',
-            data: [
-                <% user['skills'].each do |skill|%>
-                ['<%=skill%>',   1],
-                <% end %>
-            ]
-        }]
-      });
+            showInLegend: false, 
+            color: "rgba(151,187,205,0.5)",
+            data: [100, 75, 50]
+        }],
+        plotOptions: {
+          series: {
+              animation: false,
+              pointWidth: 80
 
-     
+          }
+        }
+    });
   </script>
 </html>

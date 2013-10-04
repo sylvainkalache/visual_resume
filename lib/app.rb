@@ -42,11 +42,18 @@ class App < Sinatra::Base
       end
 
       position = { 'company_name' => p.at_xpath('company').at_xpath('name').text,
-                 'start-date' => p.at_xpath('start-date').at_xpath('year').text}
+                 'start-year' => p.at_xpath('start-date').at_xpath('year').text }
+      
+      month = p.at_xpath('start-date').at_xpath('month').text
+      position['start-month'] = month ? month : '1'
+      
       if p.at_xpath('end-date')
-        position['end-date'] = p.at_xpath('end-date').at_xpath('year').text
+        position['end-year'] = p.at_xpath('end-date').at_xpath('year').text
+        position['end-month'] = p.at_xpath('end-date').at_xpath('month').text
       else
-        position['end-date'] = '2013'
+        time = Time.now
+        position['end-year'] = time.year
+        position['end-month'] = time.month
       end
       user['positions'] << position
     end
@@ -89,7 +96,8 @@ class App < Sinatra::Base
     File.open("lib/public/#{user['first_name']}-#{user['last_name']}.html", 'w') {|f| f.write(html) }
     `phantomjs ./lib/pdf_gen.js ./lib/public/#{user['first_name']}-#{user['last_name']}.html ./lib/public/#{user['first_name']}-#{user['last_name']}.pdf`
     Slideshare.upload("#{user['first_name']}-#{user['last_name']}.pdf")
-
+    
+    p user
     erb :index, :locals => {:user => user}
   end
 

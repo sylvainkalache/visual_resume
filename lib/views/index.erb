@@ -31,6 +31,21 @@
         clear: both;
         margin-left: 20px;
       }
+      
+      #work-header {
+        clear: both;
+        display: block;
+      }
+
+      #work-header h3 {
+        display: inline;
+      }
+
+      #work-header img {
+        width: 25px;
+        height: 25px;
+        margin-left: 10px;
+      }
 
       #skills {
         margin: auto;
@@ -52,7 +67,13 @@
       </div>
     </header>
 
-    <h3>Work Experience</h3>
+    <div id="work-header">
+      <h3>Work Experience</h3>
+      <% user['company-logos'].each do |url| %>
+        <img src="<%=url%>"/>
+      <% end %>
+    </div>
+
     <div id="work" style="width:900px;height:250px"></div>
 
     <h3>Education</h3>

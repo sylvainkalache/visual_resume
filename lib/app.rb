@@ -70,6 +70,7 @@ class App < Sinatra::Base
       user['positions'] << position
     end
     user['industries'] = industries
+    user['company-logos'] = companies
 
     user['educations'] = Array.new()
     # Getting education infos

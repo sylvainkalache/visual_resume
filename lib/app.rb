@@ -1,4 +1,3 @@
-require 'logger'
 require 'ostruct'
 require 'erb'
 require 'slideshare'
@@ -34,16 +33,15 @@ class App < Sinatra::Base
     industries = Hash.new()
     user['positions'] = Array.new()
     # Getting positions infos
-    doc.xpath('//position').each do |p|
-      
-puts p
-      position = { 'title' => p.at_xpath('title').text, 
+    doc.xpath('//position')[0..4].each do |p|
+
+      position = { 'title' => p.at_xpath('title').text,
                  'company_name' => p.at_xpath('company').at_xpath('name').text,
                  'start-year' => p.at_xpath('start-date').at_xpath('year').text }
-      
+
       month = p.at_xpath('start-date').at_xpath('month').text
       position['start-month'] = month ? month : '1'
-      
+
       if p.at_xpath('end-date')
         position['end-year'] = p.at_xpath('end-date').at_xpath('year').text
         position['end-month'] = p.at_xpath('end-date').at_xpath('month').text
@@ -58,7 +56,9 @@ puts p
         company.xpath('//industry').each do |c|
           unless c.at_xpath('name').nil?
             industries[c.at_xpath('name').text()] = 0 if industries[c.at_xpath('name').text()].nil?
-            industries[c.at_xpath('name').text()] += position['end-year'].to_i - position['start-year'].to_i
+            diff = position['end-year'].to_i - position['start-year'].to_i
+            diff = 1 if diff == 0 
+            industries[c.at_xpath('name').text()] += diff
           end
         end
       end
@@ -69,7 +69,7 @@ puts p
 
     user['educations'] = Array.new()
     # Getting education infos
-    doc.xpath('//education').each do |p|
+    doc.xpath('//education')[0..4].each do |p|
       education = { 'school-name' => p.at_xpath('school-name').text,
                   'degree' => p.at_xpath('degree').text,
                   'start-date' => p.at_xpath('start-date').at_xpath('year').text }
@@ -106,7 +106,7 @@ puts p
     File.open("lib/public/#{user['first_name']}-#{user['last_name']}.html", 'w') {|f| f.write(html) }
     `phantomjs ./lib/pdf_gen.js ./lib/public/#{user['first_name']}-#{user['last_name']}.html ./lib/public/#{user['first_name']}-#{user['last_name']}.pdf`
     Slideshare.upload("#{user['first_name']}-#{user['last_name']}.pdf")
-    
+    p industries
     p user
     erb :index, :locals => {:user => user}
   end

@@ -60,12 +60,12 @@ class App < Sinatra::Base
     end
 
     # Getting user basic informations
-     doc.xpath('//person').each do |c|      
-        user['first_name'] = c.at_xpath('first-name').text() unless c.at_xpath('first-name').nil?
-        user['last_name'] = c.at_xpath('last-name').text() unless c.at_xpath('last-name').nil?
-        user['headline'] = c.at_xpath('headline').text() unless c.at_xpath('headline').nil?
-        user['picture-url'] = c.at_xpath('picture-url').text() unless c.at_xpath('picture-url').nil?     
-      end
+    doc.xpath('//person').each do |c|      
+      user['first_name'] = c.at_xpath('first-name').text() unless c.at_xpath('first-name').nil?
+      user['last_name'] = c.at_xpath('last-name').text() unless c.at_xpath('last-name').nil?
+      user['headline'] = c.at_xpath('headline').text() unless c.at_xpath('headline').nil?
+      user['picture-url'] = c.at_xpath('picture-url').text() unless c.at_xpath('picture-url').nil?     
+    end
 
     # Getting user skills
     user['skills'] = Array.new()
@@ -79,7 +79,8 @@ class App < Sinatra::Base
     erb_instance = ERB.new(File.read('lib/views/index.erb'))
     html = erb_instance.result(OpenStruct.new(context).instance_eval { binding })
     File.open('resume.html', 'w') {|f| f.write(html) }
-
+    
+    p user
     erb :index, :locals => {:user => user}
   end
 

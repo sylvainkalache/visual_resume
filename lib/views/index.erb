@@ -9,7 +9,9 @@
   <body>
     <header>
       <h1><%=user['first_name']%>&nbsp;<%=user['last_name']%></h1>
+      <img src="<%=user['picture-url']%>"/>
       <h2><%=user['headline']%></h2>
+
     </header>
 
     <h3>Work Experience</h3>
@@ -17,9 +19,11 @@
 
     <h3>Education</h3>
     <div id="education" style="width:800px; height:200px;"></div>
-    
-    <div id="language" style="width:400px; height:400px;"></div>
+
+    <h3>Skills</h3>
     <div id="skills" width="400" height="400"></div>
+
+    <div id="language" style="width:400px; height:400px;"></div>
   </body>
   <script>
     languageMapping = {25:'Basic', 50:'Good', 75:'Excellent', 100:'Mother Tongue'};
@@ -103,6 +107,36 @@
           ]
       }]
     });
+
+    //Skills
+    $('#skills').highcharts({
+        chart: {
+            plotBackgroundColor: null,
+            plotBorderWidth: null,
+            plotShadow: false
+        },
+        plotOptions: {
+            pie: {
+                allowPointSelect: false,
+                cursor: 'pointer',
+                dataLabels: {
+                    enabled: true,
+                    color: '#000000',
+                    connectorColor: '#000000',
+                    format: '<b>{point.name}</b>'
+                }
+            }
+        },
+        series: [{
+            type: 'pie',
+            name: 'Browser share',
+            data: [
+                <% user['skills'].each do |skill|%>
+                ['<%=skill%>',   1],
+                <% end %>
+            ]
+        }]
+      });
 
      
   </script>

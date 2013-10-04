@@ -26,7 +26,7 @@ class App < Sinatra::Base
   end
 
   get '/' do
-    doc = Nokogiri::XML(access_token.get("https://api.linkedin.com/v1/people/~:(first-name,last-name,headline,positions,educations)").body)
+    doc = Nokogiri::XML(access_token.get("https://api.linkedin.com/v1/people/~:(first-name,last-name,headline,positions,educations,skills)").body)
 
     @user = Hash.new()
 
@@ -57,6 +57,14 @@ class App < Sinatra::Base
         @user['headline'] = c.at_xpath('headline').text() unless c.at_xpath('headline').nil?
         @user['picture-url'] = c.at_xpath('picture-url').text() unless c.at_xpath('picture-url').nil?     
       end
+
+    # Getting user skills
+    @user['skills'] = Array.new()
+    doc.xpath('//skill').each do |s|
+      puts s.at_xpath('name')
+      @user['skills'] << s.at_xpath('name').text unless s.at_xpath('name').nil?
+    end
+
     p @user
     erb :index
   end

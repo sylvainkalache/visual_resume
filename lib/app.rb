@@ -19,7 +19,6 @@ class App < Sinatra::Base
   end
 
   before do
-    puts "Retrieving user for user_id #{session[:user_id]}"
     @user = Users.get(session[:user_id])
   end
 
@@ -29,7 +28,7 @@ class App < Sinatra::Base
   end
 
   get '/' do
-    doc = Nokogiri::XML(access_token.get("https://api.linkedin.com/v1/people/~:(first-name,last-name,headline,positions,educations,skills)").body)
+    doc = Nokogiri::XML(access_token.get("https://api.linkedin.com/v1/people/~:(first-name,last-name,headline,positions,educations,skills,picture-url)").body)
 
     user = Hash.new()
 
@@ -67,22 +66,22 @@ class App < Sinatra::Base
     end
 
     # Getting user basic informations
-    doc.xpath('//person').each do |c|      
+    doc.xpath('//person').each do |c|
       user['first_name'] = c.at_xpath('first-name').text() unless c.at_xpath('first-name').nil?
       user['last_name'] = c.at_xpath('last-name').text() unless c.at_xpath('last-name').nil?
       user['headline'] = c.at_xpath('headline').text() unless c.at_xpath('headline').nil?
-      user['picture-url'] = c.at_xpath('picture-url').text() unless c.at_xpath('picture-url').nil?     
+      user['picture-url'] = c.at_xpath('picture-url').text() unless c.at_xpath('picture-url').nil?
     end
 
     # Getting user skills
     user['skills'] = Array.new()
-    doc.xpath('//skill').each do |s|
+    doc.xpath('//skill')[0..10].each do |s|
       user['skills'] << s.at_xpath('name').text unless s.at_xpath('name').nil?
     end
-    
+
     context = Hash.new{|h, k| h[k] = []}
     context[:user] = user
-    
+
     # Generating HTML
     erb_instance = ERB.new(File.read('lib/views/index.erb'))
     html = erb_instance.result(OpenStruct.new(context).instance_eval { binding })
@@ -106,7 +105,6 @@ class App < Sinatra::Base
 
   get '/oauth2/callback' do
     token = oauth_client.auth_code.get_token(params[:code], :redirect_uri => redirect_uri)
-    puts "TOKEN: #{token.token}"
     access_token = OAuth2::AccessToken.new(oauth_client, token.token, {
         :mode => :query,
         :param_name => "oauth2_access_token",
@@ -117,17 +115,13 @@ class App < Sinatra::Base
     doc = Nokogiri::XML(response.body)
     linkedin_id = doc.xpath('//person/id').text
     @user = Users.first(:linkedin_id => linkedin_id)
-    puts "User #{@user}"
     if @user.nil?
-      puts "Creating user..."
       # Create user
       @user = Users.create(:linkedin_id => linkedin_id,
         :first_name => doc.xpath('//person/first-name').text,
         :last_name => doc.xpath('//person/last-name').text,
         :access_token => token.token)
-      puts "User created: #{@user.id}"
     else
-      puts "Updating access token for user #{@user.id}"
       @user.update(:access_token => token.token)
     end
     session[:user_id] = @user.id

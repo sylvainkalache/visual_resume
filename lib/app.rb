@@ -40,13 +40,13 @@ class App < Sinatra::Base
       title = p.at_xpath('title')
       position['title'] = title ? title.text : ''
 
-
-      month = p.at_xpath('start-date').at_xpath('month').text
-      position['start-month'] = month ? month : '1'
+      start_month = p.at_xpath('start-date').at_xpath('month')
+      position['start-month'] = start_month ? start_month.text : '1'
 
       if p.at_xpath('end-date')
         position['end-year'] = p.at_xpath('end-date').at_xpath('year').text
-        position['end-month'] = p.at_xpath('end-date').at_xpath('month').text
+        end_month = p.at_xpath('end-date').at_xpath('month')
+        position['end-month'] = end_month ? end_month.text : '12'
       else
         time = Time.now
         position['end-year'] = time.year

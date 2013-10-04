@@ -53,10 +53,10 @@
     </header>
 
     <h3>Work Experience</h3>
-    <div id="work" style="width:900px; height:200px;"></div>
+    <div id="work" style="width:900px;height:300px"></div>
 
     <h3>Education</h3>
-    <div id="education" style="width:900px; height:200px;"></div>
+    <div id="education" style="width:900px;height:200px"></div>
     
     <h3>Industries with Work Experience</h3>
     <div id="industries" style="width:800px; height:200px;"></div>
@@ -162,7 +162,12 @@
             type: 'bar'
         },
         xAxis: {
-            categories: ['Law', 'Venture Capital', 'Tech'],
+
+            categories: [
+            <% user['industries'].each do |name, year| %>
+              "<%=name%>",
+            <% end %>
+            ],
             title: {
                 text: null
             }
@@ -179,7 +184,11 @@
         },
         series: [{
             showInLegend: false, 
-            data: [3, 5, 4]
+            data: [
+            <% user['industries'].each do |name, year| %>
+              <%=year%>,
+            <% end %>
+            ]
         }]
     });
 

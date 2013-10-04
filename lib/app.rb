@@ -1,4 +1,6 @@
 require 'logger'
+require 'ostruct'
+require 'erb'
 
 # Load all model files
 Dir[File.join(File.dirname(__FILE__), 'model/*.rb')].each { |f| require f }
@@ -58,6 +60,10 @@ class App < Sinatra::Base
         @user['picture-url'] = c.at_xpath('picture-url').text() unless c.at_xpath('picture-url').nil?     
       end
 
+    #context = {}
+    context = Hash.new{|h, k| h[k] = []}
+    context[:user] = @user
+
     # Getting user skills
     @user['skills'] = Array.new()
     doc.xpath('//skill').each do |s|
@@ -66,6 +72,13 @@ class App < Sinatra::Base
     end
 
     p @user
+    puts context.inspect
+    html = erb.result(OpenStruct.new(context).instance_eval { binding })
+    #html = ERB.new(context).result(binding)
+    f = File.open('./test.html', 'w')
+    f.do { |file| file.write(html) }
+    f.close
+
     erb :index
   end
 

@@ -35,9 +35,11 @@ class App < Sinatra::Base
     # Getting positions infos
     doc.xpath('//position')[0..4].each do |p|
 
-      position = { 'title' => p.at_xpath('title').text,
-                 'company_name' => p.at_xpath('company').at_xpath('name').text,
+      position = { 'company_name' => p.at_xpath('company').at_xpath('name').text,
                  'start-year' => p.at_xpath('start-date').at_xpath('year').text }
+      title = p.at_xpath('title')
+      position['title'] = title ? title.text : ''
+
 
       month = p.at_xpath('start-date').at_xpath('month').text
       position['start-month'] = month ? month : '1'
@@ -71,8 +73,9 @@ class App < Sinatra::Base
     # Getting education infos
     doc.xpath('//education')[0..4].each do |p|
       education = { 'school-name' => p.at_xpath('school-name').text,
-                  'degree' => p.at_xpath('degree').text,
                   'start-date' => p.at_xpath('start-date').at_xpath('year').text }
+      degree = p.at_xpath('degree')
+      education['degree'] = degree ? degree.text : ''
 
       if p.at_xpath('end-date')
         education['end-date'] = p.at_xpath('end-date').at_xpath('year').text

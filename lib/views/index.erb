@@ -8,8 +8,11 @@
   </head>
   <body>
     <header>
-      <img src="https://encrypted-tbn3.gstatic.com/images?q=tbn:ANd9GcTLhXNzsP3_z9dfGKePGySFtxAMP_zR_N41harVJeDHM1otHEOoWVomD0YI"/>
-      <!--<img src="<%=user['picture-url']%>"/>-->
+      <% if user.has_key?('picture-url') %>
+        <img src="<%=user['picture-url']%>"/>
+      <% else %>
+        <img src="https://encrypted-tbn3.gstatic.com/images?q=tbn:ANd9GcTLhXNzsP3_z9dfGKePGySFtxAMP_zR_N41harVJeDHM1otHEOoWVomD0YI"/>
+      <% end %>
       <div id="overview">
         <h1><%=user['first_name']%>&nbsp;<%=user['last_name']%></h1>
         <h2><%=user['headline']%></h2>

@@ -27,10 +27,11 @@ class App < Sinatra::Base
   end
 
   get '/' do
-    doc = Nokogiri::XML(access_token.get("https://api.linkedin.com/v1/people/~:(first-name,last-name,headline,educations,skills,picture-url,positions:(start-date:(year,month),end-date,title,company:(name,id)))").body)
+    doc = Nokogiri::XML(access_token.get("https://api.linkedin.com/v1/people/~:(first-name,last-name,headline,educations,skills,picture-url,positions:(start-date:(year,month),end-date,title,company:(name,id,square-logo-url)))").body)
 
     user = Hash.new()
     industries = Hash.new()
+    companies = Array.new()
     user['positions'] = Array.new()
     # Getting positions infos
     doc.xpath('//position')[0..4].each do |p|
@@ -39,7 +40,7 @@ class App < Sinatra::Base
                  'start-year' => p.at_xpath('start-date').at_xpath('year').text }
       title = p.at_xpath('title')
       position['title'] = title ? title.text : ''
-
+      
 
       month = p.at_xpath('start-date').at_xpath('month').text
       position['start-month'] = month ? month : '1'
@@ -54,7 +55,9 @@ class App < Sinatra::Base
       end
 
       unless p.at_xpath('company').at_xpath('id').nil?
-        company = Nokogiri::XML(access_token.get("https://api.linkedin.com/v1/companies/#{p.at_xpath('company').at_xpath('id').text()}:(industries)").body)
+        company = Nokogiri::XML(access_token.get("https://api.linkedin.com/v1/companies/#{p.at_xpath('company').at_xpath('id').text()}:(industries,square-logo-url,logo-url)").body)
+        companies << company.xpath('//square-logo-url').text() unless company.xpath('//square-logo-url').text.nil?
+
         company.xpath('//industry').each do |c|
           unless c.at_xpath('name').nil?
             industries[c.at_xpath('name').text()] = 0 if industries[c.at_xpath('name').text()].nil?
@@ -111,6 +114,7 @@ class App < Sinatra::Base
     Slideshare.upload("#{user['first_name']}-#{user['last_name']}.pdf")
     p industries
     p user
+    p companies
     erb :index, :locals => {:user => user}
   end
 

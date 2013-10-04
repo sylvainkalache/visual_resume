@@ -7,7 +7,7 @@ DataMapper.finalize
 class App < Sinatra::Base
   credentials = YAML.load_file(File.join(File.dirname(__FILE__), '../credentials.yml'))
   helpers Sinatra::JSON
-  set :haml, :format => :html5
+  set :erb, :format => :html5
   enable :sessions
 
   configure do
@@ -33,8 +33,14 @@ class App < Sinatra::Base
     @user['positions'] = Array.new()
     # Getting positions infos
     doc.xpath('//position').each do |p|
-      @user['positions'] << { 'company_name' => p.at_xpath('company').at_xpath('name').text,
-                              'start-date' => p.at_xpath('start-date').at_xpath('year').text }
+      position = { 'company_name' => p.at_xpath('company').at_xpath('name').text,
+                 'start-date' => p.at_xpath('start-date').at_xpath('year').text}
+      if p.at_xpath('end-date')
+        position['end-date'] = p.at_xpath('end-date').at_xpath('year').text
+      else
+        position['end-date'] = '2013'
+      end
+      @user['positions'] << position
     end
 
     @user['educations'] = Array.new()
@@ -59,8 +65,8 @@ class App < Sinatra::Base
       @user['skills'] << s.at_xpath('name').text unless s.at_xpath('name').nil?
     end
 
-    puts @user
-    haml :index
+    p @user
+    erb :index
   end
 
   get '/oauth' do

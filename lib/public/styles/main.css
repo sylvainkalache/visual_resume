@@ -1,8 +1,19 @@
 body {
-    width:1000px;
-    margin:auto;
+    width: 1000px;
+    margin: auto;
 }
 
 header {
-	text-align: center;
+	width:500px;
+	margin: auto;
+}
+
+header img {
+	float: left;
+	width: 100px;
+	height: 100px;
+}
+
+#overview {
+	margin-left: 20px;
 }

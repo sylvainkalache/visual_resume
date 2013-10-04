@@ -8,10 +8,12 @@
   </head>
   <body>
     <header>
-      <h1><%=user['first_name']%>&nbsp;<%=user['last_name']%></h1>
-      <img src="<%=user['picture-url']%>"/>
-      <h2><%=user['headline']%></h2>
-
+      <img src="https://encrypted-tbn3.gstatic.com/images?q=tbn:ANd9GcTLhXNzsP3_z9dfGKePGySFtxAMP_zR_N41harVJeDHM1otHEOoWVomD0YI"/>
+      <!--<img src="<%=user['picture-url']%>"/>-->
+      <div id="overview">
+        <h1><%=user['first_name']%>&nbsp;<%=user['last_name']%></h1>
+        <h2><%=user['headline']%></h2>
+      </div>
     </header>
 
     <h3>Work Experience</h3>
@@ -35,6 +37,11 @@
       },
       title: {
         text: null
+      },
+      plotOptions: {
+        series: {
+          animation: false
+        } 
       }
     });
     

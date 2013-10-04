@@ -13,6 +13,7 @@ test/version_tmp
 tmp
 credentials.yml
 resume.html
+resume.pdf
 
 # YARD artifacts
 .yardoc

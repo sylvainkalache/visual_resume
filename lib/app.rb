@@ -87,7 +87,7 @@ class App < Sinatra::Base
 
     # Getting user basic informations
     doc.xpath('//person').each do |c|
-      user['first_name'] = c.at_xpath('first-name').text() unless c.at_xpath('first-name').nil?
+      user['first_name'] = c.at_xpath('first-name').text().gsub(' ','-') unless c.at_xpath('first-name').nil?
       user['last_name'] = c.at_xpath('last-name').text() unless c.at_xpath('last-name').nil?
       user['headline'] = c.at_xpath('headline').text() unless c.at_xpath('headline').nil?
       user['picture-url'] = c.at_xpath('picture-url').text() unless c.at_xpath('picture-url').nil?

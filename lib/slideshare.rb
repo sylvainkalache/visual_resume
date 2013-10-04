@@ -11,6 +11,6 @@ class Slideshare
     now = Time.now.to_i.to_s
     hashed = Digest::SHA1.hexdigest("#{secret}#{now}")
 
-    curl_return = `curl -F slideshow_srcfile=@#{file_path} -F username='sylvainkalache' -F password=#{temporary_testing_password} -F slideshow_title='Hackday test' https://www.slideshare.net/api/2/upload_slideshow -F api_key=#{api_key} -F ts=#{now} -F hash=#{hashed} -F make_slideshow_private=Y`
+    curl_return = `curl -F slideshow_srcfile=@#{file_path} -F username='sylvainkalache' -F password=#{temporary_testing_password} -F slideshow_title=#{file_name.gsub('.pdf','')}-resume https://www.slideshare.net/api/2/upload_slideshow -F api_key=#{api_key} -F ts=#{now} -F hash=#{hashed} -F make_slideshow_private=Y`
   end
 end

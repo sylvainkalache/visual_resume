@@ -28,13 +28,21 @@ class App < Sinatra::Base
   end
 
   get '/' do
-    doc = Nokogiri::XML(access_token.get("https://api.linkedin.com/v1/people/~:(first-name,last-name,headline,positions,educations,skills,picture-url)").body)
+    doc = Nokogiri::XML(access_token.get("https://api.linkedin.com/v1/people/~:(first-name,last-name,headline,educations,skills,picture-url,positions:(start-date:(year,month),company:(name,id)))").body)
 
     user = Hash.new()
-
+    industries = Hash.new()
     user['positions'] = Array.new()
     # Getting positions infos
     doc.xpath('//position').each do |p|
+      company = Nokogiri::XML(access_token.get("https://api.linkedin.com/v1/companies/#{p.at_xpath('company').at_xpath('id').text()}:(industries)").body)
+      company.xpath('//industry').each do |c|
+       unless c.at_xpath('name').nil?
+         industries[c.at_xpath('name').text()] = 0 if industries[c.at_xpath('name').text()].nil?
+         industries[c.at_xpath('name').text()] += 1
+       end
+      end
+      
       position = { 'title' => p.at_xpath('title').text, 
                  'company_name' => p.at_xpath('company').at_xpath('name').text,
                  'start-year' => p.at_xpath('start-date').at_xpath('year').text }
@@ -52,6 +60,7 @@ class App < Sinatra::Base
       end
       user['positions'] << position
     end
+    user['industries'] = industries
 
     user['educations'] = Array.new()
     # Getting education infos

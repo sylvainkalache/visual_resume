@@ -1,0 +1,60 @@
+<!doctype html>
+<html>
+  <head>
+    <title>LinkedIn Resume Infographic</title>
+    <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js"></script>
+    <script src="http://code.highcharts.com/highcharts.js"></script>
+  </head>
+  <body>
+    <div id="work" style="width:800px; height:200px;"></div>
+    <div id="language" style="width:400px; height:400px;"></div>
+    <div id="skills" width="400" height="400"></div>
+  </body>
+  <script>
+    languageMapping = {25:'Basic', 50:'Good', 75:'Excellent', 100:'Mother Tongue'};
+
+    $(function () { 
+      Highcharts.setOptions({
+        credits: {
+          enabled: false
+        },
+        title: {
+          text: null
+        }
+      });
+
+      $('#work').highcharts({
+        chart: {
+            type: 'bar'
+        },
+        xAxis: {
+            categories: [
+              <% @user['positions'].each do |position| %>
+                '<%=position['company_name']%>',
+              <% end %>
+            ],
+            title: {
+                text: null
+            }
+        },
+        yAxis: {
+            type: 'datetime',
+            min: Date.UTC(<%=@user['positions'][-1]['start-date']%>, 0, 1)
+        },
+        series: [{
+            showInLegend: false, 
+            data: [
+              <% @user['positions'].each do |position| %>
+              {
+                  low: Date.UTC(<%=position['start-date']%>, 0, 1),
+                  y: Date.UTC(<%=position['end-date']%>, 12, 31)
+              },
+              <% end %>
+            ]
+        }]
+      });
+
+     
+    });
+  </script>
+</html>

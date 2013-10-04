@@ -7,7 +7,7 @@ class Slideshare
     secret = credentials['slideshare_secret']
     temporary_testing_password = credentials['temporary_testing_password']
 
-    file_path = "/home/ubuntu/visual_resume/lib/public/#{file_name}"
+    file_path = "./lib/public/#{file_name}"
     now = Time.now.to_i.to_s
     hashed = Digest::SHA1.hexdigest("#{secret}#{now}")
 

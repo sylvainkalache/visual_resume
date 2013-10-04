@@ -35,7 +35,8 @@ class App < Sinatra::Base
     user['positions'] = Array.new()
     # Getting positions infos
     doc.xpath('//position').each do |p|
-      position = { 'company_name' => p.at_xpath('company').at_xpath('name').text,
+      position = { 'title' => p.at_xpath('title').text, 
+                 'company_name' => p.at_xpath('company').at_xpath('name').text,
                  'start-year' => p.at_xpath('start-date').at_xpath('year').text }
       
       month = p.at_xpath('start-date').at_xpath('month').text
@@ -56,7 +57,9 @@ class App < Sinatra::Base
     # Getting education infos
     doc.xpath('//education').each do |p|
       education = { 'school-name' => p.at_xpath('school-name').text,
+                  'degree' => p.at_xpath('degree').text,
                   'start-date' => p.at_xpath('start-date').at_xpath('year').text }
+
       if p.at_xpath('end-date')
         education['end-date'] = p.at_xpath('end-date').at_xpath('year').text
       else
@@ -79,10 +82,9 @@ class App < Sinatra::Base
       user['skills'] << s.at_xpath('name').text unless s.at_xpath('name').nil?
     end
 
+    # Generating HTML
     context = Hash.new{|h, k| h[k] = []}
     context[:user] = user
-
-    # Generating HTML
     erb_instance = ERB.new(File.read('lib/views/index.erb'))
     html = erb_instance.result(OpenStruct.new(context).instance_eval { binding })
 

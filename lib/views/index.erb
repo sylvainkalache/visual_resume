@@ -2,7 +2,40 @@
 <html>
   <head>
     <title>LinkedIn Resume Infographic</title>
-    <link href="/styles/main.css" media="all" rel="stylesheet" type="text/css" />
+    <!--<link href="/styles/main.css" media="all" rel="stylesheet" type="text/css" />-->
+    <style type="text/css">
+      body {
+          width: 1000px;
+          margin: auto;
+          font-family: cursive;
+      }
+
+      header {
+        width:500px;
+        margin: auto;
+      }
+
+      header img {
+        float: left;
+        width: 100px;
+        height: 100px;
+        margin-top: 10px;
+      }
+
+      #overview {
+        float: left;
+        margin-left: 20px;
+      }
+
+      h3 {
+        clear: both;
+        margin-left: 20px;
+      }
+
+      #skills {
+        margin: auto;
+      }
+    </style>
     <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js"></script>
     <script src="http://code.highcharts.com/highcharts.js"></script>
   </head>
@@ -20,23 +53,18 @@
     </header>
 
     <h3>Work Experience</h3>
-    <div id="work" style="width:800px; height:200px;"></div>
+    <div id="work" style="width:900px; height:200px;"></div>
 
     <h3>Education</h3>
-    <div id="education" style="width:800px; height:200px;"></div>
+    <div id="education" style="width:900px; height:200px;"></div>
     
     <h3>Industries with Work Experience</h3>
     <div id="industries" style="width:800px; height:200px;"></div>
 
     <h3>Skills</h3>
     <div id="skills" width="400" height="400"></div>
-    
-    <h3>Languange</h3>
-    <div id="language" style="width:400px; height:400px;"></div>
   </body>
   <script>
-    languageMapping = {25:'Basic', 50:'Good', 75:'Excellent', 100:'Mother Tongue'};
-    
     //Global Settings
     Highcharts.setOptions({
       credits: {
@@ -48,7 +76,13 @@
       plotOptions: {
         series: {
           animation: false
-        } 
+        }, 
+        column: {
+          colorByPoint: true
+        },
+        bar: {
+          colorByPoint: true
+        }
       }
     });
     
@@ -60,7 +94,7 @@
       xAxis: {
           categories: [
             <% user['positions'].each do |position| %>
-              '<%=position['company_name']%>',
+              "<%=position['title']%> <br/> <%=position['company_name']%>",
             <% end %>
           ],
           title: {
@@ -95,7 +129,7 @@
       xAxis: {
           categories: [
             <% user['educations'].each do |education| %>
-              '<%=education['school-name']%>',
+              "<%=education['degree']%> <br/> <%=education['school-name']%>",
             <% end %>
           ],
           title: {
@@ -179,39 +213,5 @@
       }]
     });
     
-    //Language
-    $('#language').highcharts({
-        chart: {
-            type: 'column'
-        },
-        xAxis: {
-            categories: ['Italian', 'English', 'French'],
-            gridLineWidth: 0
-        },
-        yAxis: {
-            title: {
-                text: null
-            },
-            gridLineWidth: 0,
-            tickInterval: 25,
-            labels:{
-                formatter: function(){
-                    return languageMapping[this.value];
-                }
-            }
-        },
-        series: [{
-            showInLegend: false, 
-            color: "rgba(151,187,205,0.5)",
-            data: [100, 75, 50]
-        }],
-        plotOptions: {
-          series: {
-              animation: false,
-              pointWidth: 80
-
-          }
-        }
-    });
   </script>
 </html>

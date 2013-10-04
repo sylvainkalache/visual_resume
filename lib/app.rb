@@ -1,5 +1,6 @@
 require 'logger'
 
+
 # Load all model files
 Dir[File.join(File.dirname(__FILE__), 'model/*.rb')].each { |f| require f }
 DataMapper.finalize
@@ -46,8 +47,14 @@ class App < Sinatra::Base
     @user['educations'] = Array.new()
     # Getting education infos
     doc.xpath('//education').each do |p|
-      @user['educations'] << { 'school-name' => p.at_xpath('school-name').text,
-                              'start-date' => p.at_xpath('start-date').at_xpath('year').text }
+      education = { 'school-name' => p.at_xpath('school-name').text,
+                  'start-date' => p.at_xpath('start-date').at_xpath('year').text }
+      if p.at_xpath('end-date')
+        education['end-date'] = p.at_xpath('end-date').at_xpath('year').text
+      else
+        education['end-date'] = '2013'
+      end
+      @user['educations'] << education
     end
 
     # Getting user basic informations
@@ -64,6 +71,10 @@ class App < Sinatra::Base
       puts s.at_xpath('name')
       @user['skills'] << s.at_xpath('name').text unless s.at_xpath('name').nil?
     end
+    
+    context = Hash.new{|h, k| h[k] = []}
+
+
 
     p @user
     erb :index

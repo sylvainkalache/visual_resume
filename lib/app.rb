@@ -1,7 +1,7 @@
 require 'logger'
 require 'ostruct'
 require 'erb'
-
+require 'slideshare'
 
 # Load all model files
 Dir[File.join(File.dirname(__FILE__), 'model/*.rb')].each { |f| require f }
@@ -70,17 +70,21 @@ class App < Sinatra::Base
     # Getting user skills
     user['skills'] = Array.new()
     doc.xpath('//skill').each do |s|
-      puts s.at_xpath('name')
       user['skills'] << s.at_xpath('name').text unless s.at_xpath('name').nil?
     end
     
     context = Hash.new{|h, k| h[k] = []}
     context[:user] = user
+    
+    # Generating HTML
     erb_instance = ERB.new(File.read('lib/views/index.erb'))
     html = erb_instance.result(OpenStruct.new(context).instance_eval { binding })
-    File.open('resume.html', 'w') {|f| f.write(html) }
-    
-    p user
+
+    # Converting HTML to PDF and uploading to SlideShare
+    File.open("lib/public/#{user['first_name']}-#{user['last_name']}.html", 'w') {|f| f.write(html) }
+    `phantomjs ./lib/pdf_gen.js ./lib/public/#{user['first_name']}-#{user['last_name']}.html ./lib/public/#{user['first_name']}-#{user['last_name']}.pdf`
+    Slideshare.upload("#{user['first_name']}-#{user['last_name']}.pdf")
+
     erb :index, :locals => {:user => user}
   end
 

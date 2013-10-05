@@ -13,6 +13,8 @@ class Slideshare
     now = Time.now.to_i.to_s
     hashed = Digest::SHA1.hexdigest("#{secret}#{now}")
 
-    curl_return = `curl -F slideshow_srcfile=@#{file_path} -F username=#{slideshare_login} -F password=#{slideshare_password} -F slideshow_title=#{file_name.gsub('.pdf','')}-resume https://www.slideshare.net/api/2/upload_slideshow -F api_key=#{api_key} -F ts=#{now} -F hash=#{hashed} -F make_slideshow_private=#{private_slideshare_upload}`
+    description = "Resume of #{file_name.gsub('.pdf','').gsub('-',' ')} created via http://visual-resume.kalache.fr/"
+
+    curl_return = `curl -F slideshow_srcfile=@#{file_path} -F username=#{slideshare_login} -F password=#{slideshare_password} -F slideshow_title=#{file_name.gsub('.pdf','')}-resume https://www.slideshare.net/api/2/upload_slideshow -F api_key=#{api_key} -F ts=#{now} -F hash=#{hashed} -F make_slideshow_private=#{private_slideshare_upload} -F slideshow_description='#{description}'`
   end
 end

@@ -5,6 +5,7 @@ You'll need at least:
 
 - Linkedin API's keys https://www.linkedin.com/secure/developer
 - MySQL database
+- phantomjs
 
 What you'll eventually need:
 

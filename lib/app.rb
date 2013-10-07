@@ -36,38 +36,41 @@ class App < Sinatra::Base
     # Getting positions infos
     doc.xpath('//position')[0..4].each do |p|
 
-      position = { 'company_name' => p.at_xpath('company').at_xpath('name').text,
-                 'start-year' => p.at_xpath('start-date').at_xpath('year').text }
-      title = p.at_xpath('title')
-      position['title'] = title ? title.text : ''
-      start_month = p.at_xpath('start-date').at_xpath('month')
-      position['start-month'] = start_month ? start_month.text : '1'
+      # If no company name we ignore the position
+      unless p.at_xpath('company').at_xpath('name').nil?
+        position = { 'company_name' => p.at_xpath('company').at_xpath('name').text,
+                     'start-year' => p.at_xpath('start-date').at_xpath('year').text }
+        title = p.at_xpath('title')
+        position['title'] = title ? title.text : ''
+        start_month = p.at_xpath('start-date').at_xpath('month')
+        position['start-month'] = start_month ? start_month.text : '1'
 
-      if p.at_xpath('end-date')
-        position['end-year'] = p.at_xpath('end-date').at_xpath('year').text
-        end_month = p.at_xpath('end-date').at_xpath('month')
-        position['end-month'] = end_month ? end_month.text : '12'
-      else
-        time = Time.now
-        position['end-year'] = time.year
-        position['end-month'] = time.month
-      end
+        if p.at_xpath('end-date')
+          position['end-year'] = p.at_xpath('end-date').at_xpath('year').text
+          end_month = p.at_xpath('end-date').at_xpath('month')
+          position['end-month'] = end_month ? end_month.text : '12'
+        else
+          time = Time.now
+          position['end-year'] = time.year
+          position['end-month'] = time.month
+        end
 
-      unless p.at_xpath('company').at_xpath('id').nil?
-        company = Nokogiri::XML(access_token.get("https://api.linkedin.com/v1/companies/#{p.at_xpath('company').at_xpath('id').text()}:(industries,square-logo-url,logo-url)").body)
-        companies << company.xpath('//square-logo-url').text() unless company.xpath('//square-logo-url').text.empty?
+        unless p.at_xpath('company').at_xpath('id').nil?
+          company = Nokogiri::XML(access_token.get("https://api.linkedin.com/v1/companies/#{p.at_xpath('company').at_xpath('id').text()}:(industries,square-logo-url,logo-url)").body)
+          companies << company.xpath('//square-logo-url').text() unless company.xpath('//square-logo-url').text.empty?
 
-        company.xpath('//industry').each do |c|
-          unless c.at_xpath('name').nil?
-            industries[c.at_xpath('name').text()] = 0 if industries[c.at_xpath('name').text()].nil?
-            diff = position['end-year'].to_i - position['start-year'].to_i
-            diff = 1 if diff == 0 
-            industries[c.at_xpath('name').text()] += diff
+          company.xpath('//industry').each do |c|
+            unless c.at_xpath('name').nil?
+              industries[c.at_xpath('name').text()] = 0 if industries[c.at_xpath('name').text()].nil?
+              diff = position['end-year'].to_i - position['start-year'].to_i
+              diff = 1 if diff == 0 
+              industries[c.at_xpath('name').text()] += diff
+            end
           end
         end
-      end
 
       user['positions'] << position
+      end
     end
     user['industries'] = industries
     user['company-logos'] = companies
@@ -75,17 +78,21 @@ class App < Sinatra::Base
     user['educations'] = Array.new()
     # Getting education infos
     doc.xpath('//education')[0..4].each do |p|
-      education = { 'school-name' => p.at_xpath('school-name').text,
-                  'start-date' => p.at_xpath('start-date').at_xpath('year').text }
-      degree = p.at_xpath('degree')
-      education['degree'] = degree ? degree.text : ''
-
-      if p.at_xpath('end-date')
-        education['end-date'] = p.at_xpath('end-date').at_xpath('year').text
-      else
-        education['end-date'] = '2013'
+      
+      # If school name is empty we ignore the entry
+      unless p.at_xpath('school-name').nil?
+        education = { 'school-name' => p.at_xpath('school-name').text,
+          'start-date' => p.at_xpath('start-date').at_xpath('year').text }
+        degree = p.at_xpath('degree')
+        education['degree'] = degree ? degree.text : ''
+        
+        if p.at_xpath('end-date')
+          education['end-date'] = p.at_xpath('end-date').at_xpath('year').text
+        else
+          education['end-date'] = '2013'
+        end
+        user['educations'] << education
       end
-      user['educations'] << education
     end
 
     # Getting user basic informations
@@ -112,9 +119,11 @@ class App < Sinatra::Base
     File.open("lib/public/#{user['first_name']}-#{user['last_name']}.html", 'w') {|f| f.write(html) }
     `phantomjs ./lib/pdf_gen.js ./lib/public/#{user['first_name']}-#{user['last_name']}.html ./lib/public/#{user['first_name']}-#{user['last_name']}.pdf`
     Slideshare.upload("#{user['first_name']}-#{user['last_name']}.pdf")
-    p industries
-    p user
-    p companies
+    
+    # Dirty debuging
+    #p industries
+    #p user
+    #p companies
     erb :index, :locals => {:user => user}
   end
 

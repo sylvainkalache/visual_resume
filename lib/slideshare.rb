@@ -8,6 +8,10 @@ class Slideshare
     slideshare_password = credentials['slideshare_password']
     slideshare_login = credentials['slideshare_login']
     private_slideshare_upload = credentials['private_slideshare_upload']
+    unless api_key and secret and slideshare_password and slideshare_login and private_slideshare_upload
+      p "To upload on slideshare, please edit credentials.yml"
+      return
+    end
 
     file_path = "./lib/public/#{file_name}"
     now = Time.now.to_i.to_s

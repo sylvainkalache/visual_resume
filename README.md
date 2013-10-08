@@ -1,7 +1,7 @@
 visual_resume
 =============
 
-You'll need at least: 
+You'll need at least:
 
 - Linkedin API's keys https://www.linkedin.com/secure/developer
 - MySQL database

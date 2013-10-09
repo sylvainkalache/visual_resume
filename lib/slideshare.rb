@@ -3,12 +3,13 @@ require 'digest/sha1'
 class Slideshare
   def self.upload(file_name, upload_method = 'url')
     credentials = YAML.load_file(File.join(File.dirname(__FILE__), '../credentials.yml'))
+    config = YAML.load_file(File.join(File.dirname(__FILE__), '../config.yml'))
     api_key = credentials['slideshare_api_key']
     secret = credentials['slideshare_secret']
     slideshare_password = credentials['slideshare_password']
     slideshare_login = credentials['slideshare_login']
-    private_slideshare_upload = credentials['private_slideshare_upload']
-    document_public_host = credentials['document_public_host']
+    private_slideshare_upload = config['private_slideshare_upload']
+    document_public_host = config['document_public_host']
 
     file_path = "./lib/public/#{file_name}"
     now = Time.now.to_i.to_s

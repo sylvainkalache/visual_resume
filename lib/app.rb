@@ -8,6 +8,7 @@ DataMapper.finalize
 
 class App < Sinatra::Base
   credentials = YAML.load_file(File.join(File.dirname(__FILE__), '../credentials.yml'))
+  config = YAML.load_file(File.join(File.dirname(__FILE__), '../config.yml'))
   helpers Sinatra::JSON
   set :erb, :format => :html5
   enable :sessions
@@ -118,7 +119,10 @@ class App < Sinatra::Base
     # Converting HTML to PDF and uploading to SlideShare
     File.open("lib/public/#{user['first_name']}-#{user['last_name']}.html", 'w') {|f| f.write(html) }
     `phantomjs ./lib/pdf_gen.js ./lib/public/#{user['first_name']}-#{user['last_name']}.html ./lib/public/#{user['first_name']}-#{user['last_name']}.pdf`
-    Slideshare.upload("#{user['first_name']}-#{user['last_name']}.pdf")
+
+    if config['slideshare_upload'] == 1
+      Slideshare.upload("#{user['first_name']}-#{user['last_name']}.pdf")
+    end
     
     # Dirty debuging
     #p industries

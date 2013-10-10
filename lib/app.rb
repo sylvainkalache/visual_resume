@@ -13,9 +13,17 @@ class App < Sinatra::Base
   set :erb, :format => :html5
   enable :sessions
 
+  error 500 do
+    'Something bad happened'
+  end
+
   configure do
     DataMapper.setup(:default, "mysql://#{credentials['mysql_login']}:#{credentials['mysql_password']}@127.0.0.1/#{credentials['mysql_db']}")
     set :public_folder, File.dirname(__FILE__) + '/public'
+    enable :logging
+    file = File.new("requests.log", 'a+')
+    file.sync = true
+    use Rack::CommonLogger, file
   end
 
   before do
@@ -28,107 +36,113 @@ class App < Sinatra::Base
   end
 
   get '/' do
-    doc = Nokogiri::XML(access_token.get("https://api.linkedin.com/v1/people/~:(first-name,last-name,headline,educations,skills,picture-url,positions:(start-date:(year,month),end-date,title,company:(name,id)))").body)
+    begin
+      logger = Logger.new('log/app.log')
+      doc = Nokogiri::XML(access_token.get("https://api.linkedin.com/v1/people/~:(first-name,last-name,headline,educations,skills,picture-url,positions:(start-date:(year,month),end-date,title,company:(name,id)))").body)
 
-    user = Hash.new()
-    industries = Hash.new()
-    companies = Array.new()
-    user['positions'] = Array.new()
-    # Getting positions infos
-    doc.xpath('//position')[0..4].each do |p|
+      user = Hash.new()
+      industries = Hash.new()
+      companies = Array.new()
+      user['positions'] = Array.new()
+      # Getting positions infos
+      doc.xpath('//position')[0..4].each do |p|
 
-      # If no company name we ignore the position
-      unless p.at_xpath('company').at_xpath('name').nil?
-        position = { 'company_name' => p.at_xpath('company').at_xpath('name').text,
-                     'start-year' => p.at_xpath('start-date').at_xpath('year').text }
-        title = p.at_xpath('title')
-        position['title'] = title ? title.text : ''
-        start_month = p.at_xpath('start-date').at_xpath('month')
-        position['start-month'] = start_month ? start_month.text : '1'
+        # If no company name we ignore the position
+        unless p.at_xpath('company').at_xpath('name').nil?
+          position = { 'company_name' => p.at_xpath('company').at_xpath('name').text,
+                       'start-year' => p.at_xpath('start-date').at_xpath('year').text }
+          title = p.at_xpath('title')
+          position['title'] = title ? title.text : ''
+          start_month = p.at_xpath('start-date').at_xpath('month')
+          position['start-month'] = start_month ? start_month.text : '1'
 
-        if p.at_xpath('end-date')
-          position['end-year'] = p.at_xpath('end-date').at_xpath('year').text
-          end_month = p.at_xpath('end-date').at_xpath('month')
-          position['end-month'] = end_month ? end_month.text : '12'
-        else
-          time = Time.now
-          position['end-year'] = time.year
-          position['end-month'] = time.month
-        end
+          if p.at_xpath('end-date')
+            position['end-year'] = p.at_xpath('end-date').at_xpath('year').text
+            end_month = p.at_xpath('end-date').at_xpath('month')
+            position['end-month'] = end_month ? end_month.text : '12'
+          else
+            time = Time.now
+            position['end-year'] = time.year
+            position['end-month'] = time.month
+          end
 
-        unless p.at_xpath('company').at_xpath('id').nil?
-          company = Nokogiri::XML(access_token.get("https://api.linkedin.com/v1/companies/#{p.at_xpath('company').at_xpath('id').text()}:(industries,square-logo-url,logo-url)").body)
-          companies << company.xpath('//square-logo-url').text() unless company.xpath('//square-logo-url').text.empty?
+          unless p.at_xpath('company').at_xpath('id').nil?
+            company = Nokogiri::XML(access_token.get("https://api.linkedin.com/v1/companies/#{p.at_xpath('company').at_xpath('id').text()}:(industries,square-logo-url,logo-url)").body)
+            companies << company.xpath('//square-logo-url').text() unless company.xpath('//square-logo-url').text.empty?
 
-          company.xpath('//industry').each do |c|
-            unless c.at_xpath('name').nil?
-              industries[c.at_xpath('name').text()] = 0 if industries[c.at_xpath('name').text()].nil?
-              diff = position['end-year'].to_i - position['start-year'].to_i
-              diff = 1 if diff == 0 
-              industries[c.at_xpath('name').text()] += diff
+            company.xpath('//industry').each do |c|
+              unless c.at_xpath('name').nil?
+                industries[c.at_xpath('name').text()] = 0 if industries[c.at_xpath('name').text()].nil?
+                diff = position['end-year'].to_i - position['start-year'].to_i
+                diff = 1 if diff == 0
+                industries[c.at_xpath('name').text()] += diff
+              end
             end
           end
+
+          user['positions'] << position
         end
-
-      user['positions'] << position
       end
-    end
-    user['industries'] = industries
-    user['company-logos'] = companies
+      user['industries'] = industries
+      user['company-logos'] = companies
 
-    user['educations'] = Array.new()
-    # Getting education infos
-    doc.xpath('//education')[0..4].each do |p|
-      
-      # If school name is empty we ignore the entry
-      unless p.at_xpath('school-name').nil?
-        education = { 'school-name' => p.at_xpath('school-name').text,
-          'start-date' => p.at_xpath('start-date').at_xpath('year').text }
-        degree = p.at_xpath('degree')
-        education['degree'] = degree ? degree.text : ''
-        
-        if p.at_xpath('end-date')
-          education['end-date'] = p.at_xpath('end-date').at_xpath('year').text
-        else
-          education['end-date'] = '2013'
+      user['educations'] = Array.new()
+      # Getting education infos
+      unless doc.xpath('//education').nil?
+        doc.xpath('//education')[0..4].each do |p|
+
+          # If school name is empty we ignore the entry
+          unless p.at_xpath('school-name').nil?
+            education = { 'school-name' => p.at_xpath('school-name').text,
+                          'start-date' => p.at_xpath('start-date').at_xpath('year').text }
+            degree = p.at_xpath('degree')
+            education['degree'] = degree ? degree.text : ''
+
+            if p.at_xpath('end-date')
+              education['end-date'] = p.at_xpath('end-date').at_xpath('year').text
+            else
+              education['end-date'] = '2013'
+            end
+            user['educations'] << education
+          end
         end
-        user['educations'] << education
       end
+
+      # Getting user basic informations
+      doc.xpath('//person').each do |c|
+        user['first_name'] = c.at_xpath('first-name').text().gsub(' ','-') unless c.at_xpath('first-name').nil?
+        user['last_name'] = c.at_xpath('last-name').text() unless c.at_xpath('last-name').nil?
+        user['headline'] = c.at_xpath('headline').text() unless c.at_xpath('headline').nil?
+        user['picture-url'] = c.at_xpath('picture-url').text() unless c.at_xpath('picture-url').nil?
+      end
+
+      # Getting user skills
+      user['skills'] = Array.new()
+      doc.xpath('//skill')[0..10].each do |s|
+        user['skills'] << s.at_xpath('name').text unless s.at_xpath('name').nil?
+      end
+
+      # Generating HTML
+      context = Hash.new{|h, k| h[k] = []}
+      context[:user] = user
+      erb_instance = ERB.new(File.read('lib/views/index.erb'))
+      html = erb_instance.result(OpenStruct.new(context).instance_eval { binding })
+
+      # Converting HTML to PDF and uploading to SlideShare
+      File.open("lib/public/#{user['first_name']}-#{user['last_name']}.html", 'w') {|f| f.write(html) }
+      `phantomjs ./lib/pdf_gen.js ./lib/public/#{user['first_name']}-#{user['last_name']}.html ./lib/public/#{user['first_name']}-#{user['last_name']}.pdf`
+
+      if config['slideshare_upload'] == 1
+        Slideshare.upload("#{user['first_name']}-#{user['last_name']}.pdf")
+      end
+
+      logger.info("Create document for #{user['first_name']} #{user['last_name']}")
+      erb :index, :locals => {:user => user}
+    rescue StandardError => e
+      logger.info(e.message)
+      logger.info(e.backtrace)
+      status 500
     end
-
-    # Getting user basic informations
-    doc.xpath('//person').each do |c|
-      user['first_name'] = c.at_xpath('first-name').text().gsub(' ','-') unless c.at_xpath('first-name').nil?
-      user['last_name'] = c.at_xpath('last-name').text() unless c.at_xpath('last-name').nil?
-      user['headline'] = c.at_xpath('headline').text() unless c.at_xpath('headline').nil?
-      user['picture-url'] = c.at_xpath('picture-url').text() unless c.at_xpath('picture-url').nil?
-    end
-
-    # Getting user skills
-    user['skills'] = Array.new()
-    doc.xpath('//skill')[0..10].each do |s|
-      user['skills'] << s.at_xpath('name').text unless s.at_xpath('name').nil?
-    end
-
-    # Generating HTML
-    context = Hash.new{|h, k| h[k] = []}
-    context[:user] = user
-    erb_instance = ERB.new(File.read('lib/views/index.erb'))
-    html = erb_instance.result(OpenStruct.new(context).instance_eval { binding })
-
-    # Converting HTML to PDF and uploading to SlideShare
-    File.open("lib/public/#{user['first_name']}-#{user['last_name']}.html", 'w') {|f| f.write(html) }
-    `phantomjs ./lib/pdf_gen.js ./lib/public/#{user['first_name']}-#{user['last_name']}.html ./lib/public/#{user['first_name']}-#{user['last_name']}.pdf`
-
-    if config['slideshare_upload'] == 1
-      Slideshare.upload("#{user['first_name']}-#{user['last_name']}.pdf")
-    end
-    
-    # Dirty debuging
-    #p industries
-    #p user
-    #p companies
-    erb :index, :locals => {:user => user}
   end
 
   get '/oauth' do

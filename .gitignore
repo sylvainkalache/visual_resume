@@ -18,6 +18,7 @@ resume.html
 resume.pdf
 lib/public/*.html
 lib/public/*.pdf
+log/*
 
 # YARD artifacts
 .yardoc

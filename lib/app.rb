@@ -21,7 +21,7 @@ class App < Sinatra::Base
     DataMapper.setup(:default, "mysql://#{credentials['mysql_login']}:#{credentials['mysql_password']}@127.0.0.1/#{credentials['mysql_db']}")
     set :public_folder, File.dirname(__FILE__) + '/public'
     enable :logging
-    file = File.new("requests.log", 'a+')
+    file = File.new("log/requests.log", 'a+')
     file.sync = true
     use Rack::CommonLogger, file
   end

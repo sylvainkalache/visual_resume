@@ -92,7 +92,7 @@ class App < Sinatra::Base
         doc.xpath('//education')[0..4].each do |p|
 
           # If school name is empty we ignore the entry
-          unless p.at_xpath('school-name').nil?
+          unless p.at_xpath('school-name').nil? or p.at_xpath('start-date').nil?
             education = { 'school-name' => p.at_xpath('school-name').text,
                           'start-date' => p.at_xpath('start-date').at_xpath('year').text }
             degree = p.at_xpath('degree')
